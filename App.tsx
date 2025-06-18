@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import ThreeScene from './components/ThreeScene';
 import { BuildingType, PlacedBuilding, IndicatorLevels, GameState, Challenge, Vector3 as GameVector3, HistoricDataPoint } from './types';
@@ -136,6 +135,97 @@ const LineChart: React.FC<LineChartProps> = ({ title, data, width, height, lineC
   );
 };
 
+interface TopBarIndicatorsDisplayProps {
+  indicators: IndicatorLevels;
+  onShowInfo: (key: keyof IndicatorLevels) => void;
+  onToggleDashboard: () => void;
+  onToggleTheme: () => void;
+  currentTheme: 'light' | 'dark';
+}
+
+const TopBarIndicatorsDisplay: React.FC<TopBarIndicatorsDisplayProps> = ({
+  indicators,
+  onShowInfo,
+  onToggleDashboard,
+  onToggleTheme,
+  currentTheme
+}) => {
+  return (
+    <div className="w-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-md p-2 flex items-center justify-between space-x-2 z-10">
+      <div className="flex flex-1 items-center space-x-2 overflow-x-auto pb-2 pt-1 px-1">
+        <IndicatorDisplay
+          label="Ar"
+          value={indicators.airQuality}
+          icon={<SunIcon />}
+          onClick={() => onShowInfo('airQuality')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="Água"
+          value={indicators.waterQuality}
+          icon={<WaterIcon />}
+          onClick={() => onShowInfo('waterQuality')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="Felicidade"
+          value={indicators.communityHappiness}
+          icon={<HeartIcon />}
+          onClick={() => onShowInfo('communityHappiness')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="Biodiversidade"
+          value={indicators.biodiversity}
+          icon={<LeafIcon />}
+          onClick={() => onShowInfo('biodiversity')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="Energia"
+          value={indicators.energyBalance}
+          unit=""
+          icon={<BoltIcon />}
+          colorClass={indicators.energyBalance >= 0 ? 'text-yellow-500' : 'text-red-500'}
+          onClick={() => onShowInfo('energyBalance')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="Alimentos"
+          value={indicators.foodSupply}
+          icon={<FoodIcon />}
+          onClick={() => onShowInfo('foodSupply')}
+          showInfoIcon
+        />
+        <IndicatorDisplay
+          label="População"
+          value={indicators.population}
+          unit=""
+          icon={<UserGroupIcon />}
+          onClick={() => onShowInfo('population')}
+          showInfoIcon
+        />
+      </div>
+
+      <div className="flex items-center space-x-2 flex-shrink-0">
+        <button
+          onClick={onToggleDashboard}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
+          aria-label="Abrir Dashboard"
+        >
+          <ChartBarIcon />
+        </button>
+        <button
+          onClick={onToggleTheme}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
+          aria-label={currentTheme === 'light' ? 'Mudar para Tema Escuro' : 'Mudar para Tema Claro'}
+        >
+          {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -226,8 +316,12 @@ const App: React.FC = () => {
       newAvailableBuildings.push(BuildingType.WASTE_COLLECTION);
     }
 
-     if (!newAvailableBuildings.includes(BuildingType.REFORESTATION_AREA) && newIndicators.biodiversity < 50 && newBuildings.length >= 4) {
-      newAvailableBuildings.push(BuildingType.REFORESTATION_AREA);
+    // Reflorestamento: liberar se já foi liberado uma vez, nunca mais remover
+    if (!newAvailableBuildings.includes(BuildingType.REFORESTATION_AREA)) {
+      const jaFoiLiberado = gameState.availableBuildings.includes(BuildingType.REFORESTATION_AREA);
+      if (jaFoiLiberado || (newIndicators.biodiversity < 50 && newBuildings.length >= 4)) {
+        newAvailableBuildings.push(BuildingType.REFORESTATION_AREA);
+      }
     }
     
     if (!newAvailableBuildings.includes(BuildingType.COMMUNITY_CENTER) && newIndicators.communityHappiness < 60 && currentHouses >= 3) {
@@ -508,7 +602,7 @@ const App: React.FC = () => {
       )}
 
       {showDashboard && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-40 p-2 sm:p-4" onClick={() => setShowDashboard(false)} role="dialog" aria-modal="true" aria-labelledby="dashboard-title">
+          <div className="absolute inset-0 bg-lime-50 dark:bg-lime-900 flex items-center justify-center z-40 p-2 sm:p-4" onClick={() => setShowDashboard(false)} role="dialog" aria-modal="true" aria-labelledby="dashboard-title">
               <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-6">
                       <h2 id="dashboard-title" className="text-2xl sm:text-3xl font-bold text-green-700 dark:text-green-400">Dashboard da Vila</h2>
@@ -538,11 +632,11 @@ const App: React.FC = () => {
 
                                   return (
                                       <div key={key} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                                          <div className="flex items-center">
-                                            <span className="mr-2.5 text-green-600 dark:text-green-400">{icon}</span>
-                                            <span>{label}:</span>
-                                          </div>
-                                          <span className="font-semibold">{value.toFixed(0)}{unit} {trend && <span className={`ml-1.5 ${trend === '▲' ? 'text-green-500' : 'text-red-500'}`}>{trend}</span>}</span>
+                                        <div className="flex items-center">
+                                          <span className="mr-2.5 text-green-600 dark:text-green-400">{icon}</span>
+                                          <span className="font-semibold text-green-900 dark:text-white">{label}:</span>
+                                        </div>
+                                        <span className="font-bold text-green-900 dark:text-white">{value.toFixed(0)}{unit} {trend && <span className={`ml-1.5 ${trend === '▲' ? 'text-green-500' : 'text-red-500'}`}>{trend}</span>}</span>
                                       </div>
                                   );
                               })}
