@@ -411,34 +411,16 @@ const App: React.FC = () => {
   
   const currentIndicatorInfo = infoForIndicatorKey ? INDICATOR_PEDAGOGICAL_INFO[infoForIndicatorKey] : null;
 
-
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-200 dark:bg-gray-900 relative overflow-hidden">
       {/* Top Indicators Bar */}
-      <div className="p-2 flex flex-wrap gap-1 sm:gap-2 z-10 justify-center items-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md">
-          <IndicatorDisplay label="Ar" value={gameState.indicators.airQuality} icon={<SunIcon />} colorClass={gameState.indicators.airQuality > 60 ? 'text-blue-600 dark:text-blue-400' : gameState.indicators.airQuality < 40 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} onClick={() => handleShowIndicatorInfo('airQuality')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Água" value={gameState.indicators.waterQuality} icon={<WaterIcon />} colorClass={gameState.indicators.waterQuality > 60 ? 'text-cyan-600 dark:text-cyan-400' : gameState.indicators.waterQuality < 40 ? 'text-yellow-700 dark:text-yellow-500' : 'text-blue-700 dark:text-blue-400'} onClick={() => handleShowIndicatorInfo('waterQuality')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Felic." value={gameState.indicators.communityHappiness} icon={<HeartIcon />} unit="%" colorClass={gameState.indicators.communityHappiness > 60 ? 'text-pink-600 dark:text-pink-400' : gameState.indicators.communityHappiness < 40 ? 'text-orange-700 dark:text-orange-500' : 'text-purple-600 dark:text-purple-400'} onClick={() => handleShowIndicatorInfo('communityHappiness')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Biodiv." value={gameState.indicators.biodiversity} icon={<LeafIcon />} colorClass={gameState.indicators.biodiversity > 50 ? 'text-green-700 dark:text-green-400' : gameState.indicators.biodiversity < 30 ? 'text-amber-600 dark:text-amber-400' : 'text-teal-600 dark:text-teal-400'} onClick={() => handleShowIndicatorInfo('biodiversity')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Energia" value={gameState.indicators.energyBalance} unit="" icon={<BoltIcon />} colorClass={gameState.indicators.energyBalance >= 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-red-500 dark:text-red-400'} onClick={() => handleShowIndicatorInfo('energyBalance')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Alim." value={gameState.indicators.foodSupply} icon={<FoodIcon />} colorClass={gameState.indicators.foodSupply > 50 ? 'text-lime-600 dark:text-lime-400' : gameState.indicators.foodSupply < 25 ? 'text-red-600 dark:text-red-400' : 'text-orange-500 dark:text-orange-400'} onClick={() => handleShowIndicatorInfo('foodSupply')} showInfoIcon={true}/>
-          <IndicatorDisplay label="Pop." value={gameState.indicators.population} unit="" icon={<UserGroupIcon />} colorClass={'text-slate-700 dark:text-slate-300'} onClick={() => handleShowIndicatorInfo('population')} showInfoIcon={true}/>
-
-          <button
-            onClick={() => setShowDashboard(prev => !prev)}
-            className="p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full shadow hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-            aria-label="Mostrar/Esconder Dashboard"
-          >
-            <ChartBarIcon />
-          </button>
-          <button
-            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-            className="p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full shadow hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-            aria-label={theme === 'light' ? "Mudar para modo escuro" : "Mudar para modo claro"}
-          >
-            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-          </button>
-      </div>
+      <TopBarIndicatorsDisplay
+        indicators={gameState.indicators}
+        onShowInfo={handleShowIndicatorInfo}
+        onToggleDashboard={() => setShowDashboard(prev => !prev)}
+        onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+        currentTheme={theme}
+      />
 
       {/* Main content area: Sidebar + Scene */}
       <div className="flex flex-1 overflow-hidden">
